@@ -1,0 +1,4 @@
+node_modules/
+*.crt
+*.key
+config.js
