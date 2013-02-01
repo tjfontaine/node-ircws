@@ -1,5 +1,5 @@
 {
-  "name": "irc websocket proxy",
+  "name": "ircws",
   "version": "0.0.1",
   "author": "Timothy J Fontaine <tjfontaine@gmail.com> (http://atxconsulting.com)",
   "description": "A simple irc websocket proxy with webirc",
@@ -18,7 +18,8 @@
     "url": "http://github.com/tjfontaine/node-ircws.git"
   },
   "main": "proxy.js",
-  "dependencies": {
+  "optionalDependencies": {
+    "socket.io": ">= 0.9.13",
     "ws": ">= 0.4.25"
   },
   "engines": {

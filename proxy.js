@@ -2,7 +2,6 @@ var dns = require('dns');
 var fs = require('fs');
 var https = require('https');
 var tls = require('tls');
-var ws = require('ws');
 
 var config = require('./config');
 
@@ -17,19 +16,32 @@ var server = https.createServer(opts, function (req, res) {
   res.end();
 });
 
-var wsserver = new ws.Server({
-  server: server,
-  verifyClient: function (info) {
-    return true;
-  },
-});
-
-wsserver.on('connection', ws_client_connect);
-
 server.listen(config.port);
 
-function ws_client_connect(client) {
-  var ip = client._socket.remoteAddress;
+switch (config.module) {
+  case 'socket.io':
+    var io = require('socket.io').listen(server);
+    io.set('log level', 1);
+    io.sockets.on('connection', function (client) {
+      ws_client_connect(client, client.handshake.address.address);
+    });
+    break;
+  case 'ws':
+  default:
+    var ws = require('ws');
+    var wsserver = new ws.Server({
+      server: server,
+      verifyClient: function (info) {
+        return true;
+      },
+    }).on('connection', function (client) {
+      ws_client_connect(client, client._socket.remoteAddress);
+    });
+    break;
+}
+
+function ws_client_connect(client, ip) {
+  console.log('client connected', ip);
   dns.reverse(ip, function (err, domains) {
     if (err) {
       ws_client_resolved(client, ip, ip);
@@ -50,11 +62,14 @@ function ws_client_connect(client) {
 function ws_client_resolved(client, ip, host) {
   var webirc = false;
 
+  console.log('client connecting to irc', ip);
+
   var remote = tls.connect(config.ircPort, config.ircHost, function () {
+    console.log('client connected to irc', ip);
   });
 
   remote.on('data', function (d) {
-    if (client.readyState == ws.CLOSED)
+    if (client.readyState !== undefined && client.readyState == ws.CLOSED)
       remote.end();
     else
       client.send(d.toString('ascii'));
@@ -62,7 +77,11 @@ function ws_client_resolved(client, ip, host) {
 
   remote.on('end', function () {
     console.log('irc server hungup', ip);
-    client.close();
+
+    if(client.close)
+      client.close();
+    else
+      client.disconnect();
   });
 
   remote.on('error', function (err) {
@@ -70,6 +89,7 @@ function ws_client_resolved(client, ip, host) {
   });
 
   client.on('message', function (msg) {
+    console.log('writing', ip, remote.writable);
     if (!webirc) {
       webirc = true;
       // WEBIRC <password> <user> <host> <ip>
@@ -84,6 +104,11 @@ function ws_client_resolved(client, ip, host) {
 
   client.on('end', function () {
     console.log('client hungup', ip);
+    remote.end();
+  });
+
+  client.on('disconnect', function () {
+    console.log('client hungip', ip);
     remote.end();
   });
 }
