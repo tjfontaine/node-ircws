@@ -5,6 +5,8 @@ var tls = require('tls');
 
 var config = require('./config');
 
+config.reconnectTime = config.reconnectTime || 15 * 1000;
+
 var opts = {
   key: fs.readFileSync(config.key),
   cert: fs.readFileSync(config.cert),
@@ -23,7 +25,7 @@ switch (config.module) {
     var io = require('socket.io').listen(server);
     io.set('log level', 1);
     io.sockets.on('connection', function (client) {
-      ws_client_connect(client, client.handshake.address.address);
+      can_connect(client, client.handshake.address.address);
     });
     break;
   case 'ws':
@@ -35,12 +37,38 @@ switch (config.module) {
         return true;
       },
     }).on('connection', function (client) {
-      ws_client_connect(client, client._socket.remoteAddress);
+      can_connect(client, client._socket.remoteAddress);
     });
     break;
 }
 
+var last_connect = {};
+
+setInterval(function () {
+  var k, now = Date.now(), maxAge = 5 * config.reconnectTime;
+  for (k in last_connect) {
+    if ((now - last_connect[k]) > maxAge) {
+      delete last_connect[k];
+    }
+  }
+}, 5 * config.reconnectTime);
+
+function can_connect(client, ip) {
+  var time = last_connect[ip];
+  if (time !== undefined && (Date.now() - time) < config.reconnectTime) {
+    console.log('client connecting too fast', ip, time, Date.now());
+    client.send('ERROR :Trying to reconnect too fast.\r\n');
+    if (client.close)
+      client.close();
+    else
+      client.disconnect();
+  } else {
+    ws_client_connect(client, ip);
+  }
+}
+
 function ws_client_connect(client, ip) {
+  last_connect[ip] = Date.now();
   console.log('client connected', ip);
   dns.reverse(ip, function (err, domains) {
     if (err) {
@@ -89,7 +117,6 @@ function ws_client_resolved(client, ip, host) {
   });
 
   client.on('message', function (msg) {
-    console.log('writing', ip, remote.writable);
     if (!webirc) {
       webirc = true;
       // WEBIRC <password> <user> <host> <ip>
@@ -108,7 +135,7 @@ function ws_client_resolved(client, ip, host) {
   });
 
   client.on('disconnect', function () {
-    console.log('client hungip', ip);
+    console.log('client hungup', ip);
     remote.end();
   });
 }

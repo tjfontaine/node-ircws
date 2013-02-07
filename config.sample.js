@@ -6,3 +6,4 @@ exports.ircHost = 'irc.example.net';
 exports.password = "foobar";
 exports.redirectUrl = "http://webirc.oftc.net";
 exports.module = 'ws';
+exports.reconnectTime = 15 * 1000;
