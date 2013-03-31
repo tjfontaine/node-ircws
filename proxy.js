@@ -13,8 +13,9 @@ var opts = {
 };
 
 var server = https.createServer(opts, function (req, res) {
+  var url = req.url || '';
   res.statusCode = 302;
-  res.setHeader("Location", config.redirectUrl);
+  res.setHeader("Location", config.redirectUrl + url);
   res.end();
 });
 
