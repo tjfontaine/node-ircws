@@ -28,11 +28,7 @@ DNSFilter.prototype._transform = function dnsfltrTransform(client, enc, cb) {
   var work = vasync.parallel({
     funcs: [
       function reverseDns(next) {
-        dns.resolve(client.remoteAddress, 'PTR', function dnsResult(err,
-          hostnames) {
-          console.error('reverse dns result', err, hostnames);
-          next(err, hostnames);
-        });
+        dns.reverse(client.remoteAddress, next);
       },
       function dnsblQuery(next) {
         DNSBLQuery({
