@@ -37,9 +37,8 @@ Throttle.prototype._transform = function thrtlTransform(client, enc, cb) {
   var cur = Date.now();
   var timeout = this.thrt_timeout;
 
-  console.error('checking throttle for client');
-
-  if (!time && (cur - time) < timeout) {
+  if (time && (cur - time) < timeout) {
+    console.error('Throttling client', client.remoteAddress);
     client.end('ERROR :Trying to reconnect too fast.\r\n');
     client.destroy();
     return cb();
