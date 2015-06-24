@@ -33,7 +33,7 @@ util.inherits(Throttle, stream.Transform);
 
 
 Throttle.prototype._transform = function thrtlTransform(client, enc, cb) {
-  var time = this.thrt_connections[client.ip];
+  var time = this.thrt_connections[client.remoteAddress];
   var cur = Date.now();
   var timeout = this.thrt_timeout;
 
@@ -45,7 +45,7 @@ Throttle.prototype._transform = function thrtlTransform(client, enc, cb) {
     return cb();
   }
 
-  this.thrt_connections[client.ip] = cur;
+  this.thrt_connections[client.remoteAddress] = cur;
   this.push(client);
   return cb();
 };
