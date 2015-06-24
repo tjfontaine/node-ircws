@@ -1,9 +1,23 @@
-exports.key = './server.key';
-exports.cert = './server.crt';
-exports.port = 8443;
-exports.ircPort = 6697;
-exports.ircHost = 'irc.example.net';
-exports.password = "foobar";
-exports.redirectUrl = "http://webirc.oftc.net";
-exports.module = 'ws';
-exports.reconnectTime = 15 * 1000;
+module.exports = {
+  listeners: {
+    '0.0.0.0': {
+      type: 'plain',
+      port: 6667,
+    },
+  },
+  destination: {
+    host: 'irc.example.com',
+    port: 6667,
+    type: 'plain',
+  },
+  reconnectTime: 15 * 1000,
+  dnsbl: {
+    maxScore: 1,
+    servers: {
+      'somednsbl': {
+        zone: 'dnsbl.example.com',
+        defaultScore: 1,
+      },
+    },
+  },
+};
