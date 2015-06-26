@@ -47,13 +47,12 @@ DNSFilter.prototype._transform = function dnsfltrTransform(client, enc, cb) {
 
     var score = results.operations[1].result;
 
-    console.error('dnsbl results', score);
-
     if (score) {
       client.score = score;
 
       if (score.total > self.dnsfltr_config.maxScore) {
-        // TODO log
+        console.error('client exceeded dnsbl score', score.total, 'max of',
+          self.dnsfltr_config.maxScore);
         client.end('Administratively refused');
         return client.destroy();
       }
