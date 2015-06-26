@@ -5,10 +5,10 @@
 var net = require('net');
 var tls = require('tls');
 
-var ConnectStream = require('./connectstream');
-var DNSFilter = require('./dnsfilter');
-var IRCProxy = require('./ircproxy');
-var Throttle = require('./throttle');
+var ConnectStream = require('./lib/connectstream');
+var DNSFilter = require('./lib/dnsfilter');
+var IRCProxy = require('./lib/ircproxy');
+var Throttle = require('./lib/throttle');
 var config = require('./config');
 
 var throttle = new Throttle(config);
