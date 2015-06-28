@@ -22,6 +22,7 @@ config.listeners.forEach(function eachListener(listener) {
 
   var serverOptions = {};
 
+  var eventName = 'connection';
   switch (listener.type) {
     case 'plain':
       proto = net;
@@ -29,6 +30,7 @@ config.listeners.forEach(function eachListener(listener) {
     case 'tls':
       proto = tls;
       serverOptions = listener;
+      eventName = 'secureConnection';
       break;
     case 'websocket':
     case 'socketio':
@@ -46,7 +48,7 @@ config.listeners.forEach(function eachListener(listener) {
   server.listen(listenOptions);
 
   server.on('listening', function serverListening() {
-    ConnectStream(server)
+    ConnectStream(server, { eventName: eventName })
       .pipe(Throttle(config))
       .pipe(DNSFilter(config))
       .pipe(CertCloak(config))
