@@ -12,8 +12,6 @@ var IRCProxy = require('./lib/ircproxy');
 var Throttle = require('./lib/throttle');
 var config = require('./config');
 
-var throttle = new Throttle(config);
-
 config.listeners.forEach(function eachListener(listener) {
   var proto = undefined;
 
@@ -49,7 +47,7 @@ config.listeners.forEach(function eachListener(listener) {
 
   server.on('listening', function serverListening() {
     ConnectStream(server)
-      .pipe(throttle)
+      .pipe(Throttle(config))
       .pipe(DNSFilter(config))
       .pipe(IRCProxy(config))
       .resume(); // Don't stop accepting new clients
