@@ -49,6 +49,7 @@ config.listeners.forEach(function eachListener(listener) {
     ConnectStream(server)
       .pipe(Throttle(config))
       .pipe(DNSFilter(config))
+      .pipe(CertCloak(config))
       .pipe(IRCProxy(config))
       .resume(); // Don't stop accepting new clients
   });
