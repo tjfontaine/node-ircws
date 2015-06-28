@@ -1,4 +1,6 @@
 node_modules/
 *.crt
 *.key
+*.pem
 config.js
+*.swp

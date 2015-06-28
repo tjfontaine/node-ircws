@@ -5,6 +5,7 @@
 var net = require('net');
 var tls = require('tls');
 
+var CertCloak = require('./lib/certcloak');
 var ConnectStream = require('./lib/connectstream');
 var DNSFilter = require('./lib/dnsfilter');
 var IRCProxy = require('./lib/ircproxy');
@@ -13,36 +14,38 @@ var config = require('./config');
 
 var throttle = new Throttle(config);
 
-Object.keys(config.listeners).forEach(function eachListener(ip) {
-  var listener = config.listeners[ip];
+config.listeners.forEach(function eachListener(listener) {
   var proto = undefined;
 
-  var options = {
-    host: ip,
+  var listenOptions = {
+    host: listener.host,
     port: listener.port,
   };
+
+  var serverOptions = {};
 
   switch (listener.type) {
     case 'plain':
       proto = net;
       break;
-    case 'ssl':
+    case 'tls':
       proto = tls;
+      serverOptions = listener;
       break;
     case 'websocket':
     case 'socketio':
-      throw new Exception('Not Implemented Yet');
+      throw new Error('Not Implemented Yet');
       break;
     default:
-      throw new Exception(
+      throw new Error(
         'Must define listener type: [plain, ssl, websocket, socketio]'
       );
       break;
   }
 
-  var server = proto.createServer();
+  var server = proto.createServer(serverOptions);
 
-  server.listen(options);
+  server.listen(listenOptions);
 
   server.on('listening', function serverListening() {
     ConnectStream(server)
