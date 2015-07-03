@@ -7,6 +7,7 @@ module.exports = {
       host: '0.0.0.0',
       type: 'plain',
       port: 6667,
+      enabled: false,
     },
     {
       host: '0.0.0.0',
@@ -14,6 +15,7 @@ module.exports = {
       port: 6697,
       key: fs.readFileSync(path.join(__dirname, 'key.pem')),
       cert: fs.readFileSync(path.join(__dirname, 'cert.pem')),
+      enabled: true,
     },
   ],
   destination: {
