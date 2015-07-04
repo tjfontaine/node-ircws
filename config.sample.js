@@ -17,6 +17,15 @@ module.exports = {
       cert: fs.readFileSync(path.join(__dirname, 'cert.pem')),
       enabled: true,
     },
+    {
+      host: '0.0.0.0',
+      type: 'socketio',
+      port: 8443,
+      key: fs.readFileSync(path.join(__dirname, 'key.pem')),
+      cert: fs.readFileSync(path.join(__dirname, 'cert.pem')),
+      enabled: true,
+      redirectUrl: 'https://webchat.oftc.net',
+    },
   ],
   destination: {
     host: 'irc.example.com',

@@ -10,7 +10,9 @@ var CertCloak = require('./lib/certcloak');
 var ConnectStream = require('./lib/connectstream');
 var DNSFilter = require('./lib/dnsfilter');
 var IRCProxy = require('./lib/ircproxy');
+var socketio = require('./lib/sanesocketio');
 var Throttle = require('./lib/throttle');
+
 var config = require('./config');
 
 var definedListeners = {};
@@ -35,8 +37,11 @@ config.listeners.forEach(function eachListener(listener) {
       serverOptions = listener;
       eventName = 'secureConnection';
       break;
-    case 'websocket':
     case 'socketio':
+      proto = socketio;
+      serverOptions = listener;
+      break;
+    case 'websocket':
       throw new Error('Not Implemented Yet');
       break;
     default:
