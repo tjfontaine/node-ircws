@@ -12,6 +12,7 @@ var DNSFilter = require('./lib/dnsfilter');
 var IRCProxy = require('./lib/ircproxy');
 var socketio = require('./lib/sanesocketio');
 var Throttle = require('./lib/throttle');
+var TorFilter = require('./lib/torfilter');
 
 var config = require('./config');
 
@@ -89,6 +90,7 @@ function enableListener(key) {
       .pipe(Throttle(config))
       .pipe(DNSFilter(config))
       .pipe(CertCloak(config))
+      .pipe(TorFilter(config))
       .pipe(IRCProxy(config))
       .resume(); // Don't stop accepting new clients
   });
@@ -154,6 +156,8 @@ process.on('SIGHUP', function configReload() {
               disableListener(key);
             }
           });
+          config.blockTor = !!newConfig.blockTor;
+          config.blockTorMessage = newConfig.blockTorMessage;
         } catch (e) {
           console.error('Failed to parse configuration file');
           console.error(e);

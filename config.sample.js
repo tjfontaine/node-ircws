@@ -48,6 +48,7 @@ module.exports = {
     ca: [ fs.readFileSync(path.join(__dirname, 'spi-cacert.crt')) ],
   },
   reconnectTime: 15 * 1000,
+  blockTor: false,
   dnsbl: {
     maxScore: 1,
     servers: {
