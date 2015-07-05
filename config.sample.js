@@ -1,6 +1,9 @@
 var fs = require('fs');
 var path = require('path');
 
+var key = fs.readFileSync(path.join(__dirname, 'key.pem'));
+var cert = fs.readFileSync(path.join(__dirname, 'cert.pem'));
+
 module.exports = {
   listeners: [
     {
@@ -13,18 +16,27 @@ module.exports = {
       host: '0.0.0.0',
       type: 'tls',
       port: 6697,
-      key: fs.readFileSync(path.join(__dirname, 'key.pem')),
-      cert: fs.readFileSync(path.join(__dirname, 'cert.pem')),
+      key: key,
+      cert: cert,
       enabled: true,
     },
     {
       host: '0.0.0.0',
       type: 'socketio',
       port: 8443,
-      key: fs.readFileSync(path.join(__dirname, 'key.pem')),
-      cert: fs.readFileSync(path.join(__dirname, 'cert.pem')),
+      key: key,
+      cert: cert,
       enabled: true,
-      redirectUrl: 'https://webchat.oftc.net',
+      redirectUrl: 'https://webchat.example.com',
+    },
+    {
+      host: '0.0.0.0',
+      type: 'websocket',
+      port: 8444,
+      key: key,
+      cert: cert,
+      enabled: true,
+      redirectUrl: 'https://webchat.example.com',
     },
   ],
   destination: {
