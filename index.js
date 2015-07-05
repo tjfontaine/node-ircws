@@ -40,13 +40,16 @@ config.listeners.forEach(function eachListener(listener) {
     case 'socketio':
       proto = socketio;
       serverOptions = listener;
+      serverOptions.sio_type = 'socketio';
       break;
     case 'websocket':
-      throw new Error('Not Implemented Yet');
+      proto = socketio;
+      serverOptions = listener;
+      serverOptions.sio_type = 'ws';
       break;
     default:
       throw new Error(
-        'Must define listener type: [plain, ssl, websocket, socketio]'
+        'Must define listener type: [plain, tls, websocket, socketio]'
       );
       break;
   }
