@@ -36,16 +36,19 @@ config.listeners.forEach(function eachListener(listener) {
     case 'tls':
       proto = tls;
       serverOptions = listener;
+      serverOptions.requestCert = true;
       eventName = 'secureConnection';
       break;
     case 'socketio':
       proto = socketio;
       serverOptions = listener;
+      serverOptions.requestCert = true;
       serverOptions.sio_type = 'socketio';
       break;
     case 'websocket':
       proto = socketio;
       serverOptions = listener;
+      serverOptions.requestCert = true;
       serverOptions.sio_type = 'ws';
       break;
     default:
