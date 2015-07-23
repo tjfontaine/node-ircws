@@ -47,13 +47,9 @@ module.exports = {
     // https://nodejs.org/api/tls.html#tls_tls_connect_port_host_options_callback
     ca: [ fs.readFileSync(path.join(__dirname, 'spi-cacert.crt')) ],
   },
-  cloaks: {
-    example: {
-      key: key,
-      cert: cert,
-      ca: [ fs.readFileSync(pathjoin(__dirname, 'spi-cacert.crt')) ],
-    },
-  },
+  cloaks: [
+    path.join(__dirname, 'spi-cacert.crt'),
+  ],
   reconnectTime: 15 * 1000,
   blockTor: false,
   dnsbl: {
