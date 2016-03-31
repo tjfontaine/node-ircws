@@ -5,6 +5,9 @@
 var child_process = require('child_process');
 var net = require('net');
 var tls = require('tls');
+var util = require('util');
+
+var bunyan = require('bunyan');
 
 var CertCloak = require('./lib/certcloak');
 var ConnectStream = require('./lib/connectstream');
@@ -15,6 +18,22 @@ var Throttle = require('./lib/throttle');
 var TorFilter = require('./lib/torfilter');
 
 var config = require('./config');
+
+var logConfig = util._extend({
+  name: 'webirc',
+}, config.loggingConfig);
+
+var LOG = bunyan.createLogger(logConfig);
+
+LOG.addSerializers({
+  client: function clientSerializer(client) {
+    return util.format('%d:[%s:%d] (isTor: %s)',
+      client.clientId,
+      client.remoteAddress,
+      client.remotePort,
+      client.isTor);
+  },
+});
 
 var definedListeners = {};
 
@@ -29,6 +48,7 @@ config.listeners.forEach(function eachListener(listener) {
   var serverOptions = {};
 
   var eventName = 'connection';
+
   switch (listener.type) {
     case 'plain':
       proto = net;
@@ -75,31 +95,33 @@ function enableListener(key) {
   var listener = definedListeners[key];
 
   if (!listener) {
-    console.error('trying to enable undefined listener', key);
+    LOG.error('trying to enable undefined listener', key);
     return;
   }
 
   if (listener.server) {
-    console.error('trying to renable enabled listener', key);
+    LOG.error('trying to renable enabled listener', key);
     return;
   }
 
+  LOG.info('starting listener', key);
+
   var server = listener.proto.createServer(listener.serverOptions);
 
-  server.listen(listener.listenOptions);
+  server.listen(listener.listenOptions.port, listener.listenOptions.host);
 
   server.on('listening', function serverListening() {
-    ConnectStream(server, { eventName: listener.eventName })
-      .pipe(Throttle(config))
-      .pipe(DNSFilter(config))
-      .pipe(CertCloak(config))
-      .pipe(TorFilter(config))
-      .pipe(IRCProxy(config))
+    ConnectStream(server, { eventName: listener.eventName, logger: LOG })
+      .pipe(Throttle(config, LOG))
+      .pipe(DNSFilter(config, LOG))
+      .pipe(CertCloak(config, LOG))
+      .pipe(TorFilter(config, LOG))
+      .pipe(IRCProxy(config, LOG))
       .resume(); // Don't stop accepting new clients
   });
 
   server.on('error', function serverError(err) {
-    console.error('listener failed', err);
+    LOG.error('listener failed', err);
     // TODO restart listener?
   });
 
@@ -110,12 +132,12 @@ function disableListener(key) {
   var listener = definedListeners[key];
 
   if (!listener) {
-    console.error('trying to disable undefined listener', key);
+    LOG.error(key, 'trying to disable undefined listener');
     return;
   }
 
   if (!listener.server) {
-    console.error('listener already disabled', key);
+    LOG.error(key, 'listener already disabled');
     return;
   }
 
@@ -135,8 +157,7 @@ process.on('SIGHUP', function configReload() {
     },
     function readConifg(error, stdout, stderr) {
       if (error) {
-        console.error('Failed to read configuration file');
-        console.error(stderr);
+        LOG.error(stderr, 'Failed to read configuration file');
       } else {
         try {
           var newConfig = JSON.parse(stdout);
@@ -145,25 +166,24 @@ process.on('SIGHUP', function configReload() {
             var definedListener = definedListeners[key];
 
             if (!definedListener) {
-              console.error('cannot add new listeners with reload, ignoring', key);
+              LOG.error('cannot add new listeners with reload, ignoring', key);
               return;
             }
 
             if (listener.enabled && !definedListener.server) {
-              console.error('enabling', key, 'listener');
+              LOG.error('enabling', key, 'listener');
               enableListener(key);
             }
 
             if (!listener.enabled && definedListener.server) {
-              console.error('disabling', key, 'listener');
+              LOG.error('disabling', key, 'listener');
               disableListener(key);
             }
           });
           config.blockTor = !!newConfig.blockTor;
           config.blockTorMessage = newConfig.blockTorMessage;
         } catch (e) {
-          console.error('Failed to parse configuration file');
-          console.error(e);
+          LOG.error(e, 'Failed to parse configuration file');
         }
       }
     });

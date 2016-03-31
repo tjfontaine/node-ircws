@@ -5,6 +5,11 @@ var key = fs.readFileSync(path.join(__dirname, 'key.pem'));
 var cert = fs.readFileSync(path.join(__dirname, 'cert.pem'));
 
 module.exports = {
+  loggingConfig: {
+    // any otpions you would pass to createLogger
+    // https://github.com/trentm/node-bunyan
+    level: 'trace',
+  },
   listeners: [
     {
       host: '0.0.0.0',
