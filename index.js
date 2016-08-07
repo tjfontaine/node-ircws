@@ -155,10 +155,11 @@ process.on('SIGHUP', function configReload() {
     {
       encoding: 'utf8',
     },
-    function readConifg(error, stdout, stderr) {
+    function readConfig(error, stdout, stderr) {
       if (error) {
         LOG.error(stderr, 'Failed to read configuration file');
       } else {
+        LOG.info('SIGHUP received, reloading config');
         try {
           var newConfig = JSON.parse(stdout);
           newConfig.listeners.forEach(function enableDisable(listener) {
