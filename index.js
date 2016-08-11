@@ -171,13 +171,23 @@ process.on('SIGHUP', function configReload() {
               return;
             }
 
-            if (listener.enabled && !definedListener.server) {
-              LOG.error('enabling', key, 'listener');
+            if (listener.enabled && definedListener.server &&
+                ("cert" in definedListener.serverOptions) &&
+                (listener.cert != definedListener.serverOptions.cert)) {
+              LOG.info('certificate for', key, 'changed, reopening');
+              disableListener(key);
+              definedListener.serverOptions.key = listener.key;
+              definedListener.serverOptions.cert = listener.cert;
               enableListener(key);
             }
-
-            if (!listener.enabled && definedListener.server) {
-              LOG.error('disabling', key, 'listener');
+            else if (listener.enabled && !definedListener.server) {
+              LOG.info('enabling', key, 'listener');
+              definedListener.serverOptions.key = listener.key;
+              definedListener.serverOptions.cert = listener.cert;
+              enableListener(key);
+            }
+            else if (!listener.enabled && definedListener.server) {
+              LOG.info('disabling', key, 'listener');
               disableListener(key);
             }
           });
