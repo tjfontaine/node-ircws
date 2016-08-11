@@ -150,19 +150,12 @@ function disableListener(key) {
 }
 
 process.on('SIGHUP', function configReload() {
-  child_process.execFile(process.execPath,
-    ['-pe', 'JSON.stringify(require("./config"))'],
-    {
-      encoding: 'utf8',
-    },
-    function readConfig(error, stdout, stderr) {
-      if (error) {
-        LOG.error(stderr, 'Failed to read configuration file');
-      } else {
+        Object.keys(require.cache).forEach(function(key) { delete require.cache[key] })
+        var newConfig = require("./config");
         LOG.info('SIGHUP received, reloading config');
+
         try {
-          var newConfig = JSON.parse(stdout);
-          newConfig.listeners.forEach(function enableDisable(listener) {
+            newConfig.listeners.forEach(function enableDisable(listener) {
             var key = listener.host + ':' + listener.port;
             var definedListener = definedListeners[key];
 
@@ -173,7 +166,7 @@ process.on('SIGHUP', function configReload() {
 
             if (listener.enabled && definedListener.server &&
                 ("cert" in definedListener.serverOptions) &&
-                (listener.cert != definedListener.serverOptions.cert)) {
+                (JSON.stringify(listener.cert) != JSON.stringify(definedListener.serverOptions.cert))) {
               LOG.info('certificate for', key, 'changed, reopening');
               disableListener(key);
               definedListener.serverOptions.key = listener.key;
@@ -190,12 +183,11 @@ process.on('SIGHUP', function configReload() {
               LOG.info('disabling', key, 'listener');
               disableListener(key);
             }
+
           });
           config.blockTor = !!newConfig.blockTor;
           config.blockTorMessage = newConfig.blockTorMessage;
         } catch (e) {
           LOG.error(e, 'Failed to parse configuration file');
         }
-      }
-    });
 });
