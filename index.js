@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-"use strict";
+'use strict';
 
 var child_process = require('child_process');
 var net = require('net');
@@ -50,31 +50,31 @@ config.listeners.forEach(function eachListener(listener) {
   var eventName = 'connection';
 
   switch (listener.type) {
-    case 'plain':
-      proto = net;
-      break;
-    case 'tls':
-      proto = tls;
-      serverOptions = listener;
-      serverOptions.requestCert = true;
-      eventName = 'secureConnection';
-      break;
-    case 'socketio':
-      proto = socketio;
-      serverOptions = listener;
-      serverOptions.requestCert = true;
-      serverOptions.sio_type = 'socketio';
-      break;
-    case 'websocket':
-      proto = socketio;
-      serverOptions = listener;
-      serverOptions.requestCert = true;
-      serverOptions.sio_type = 'ws';
-      break;
-    default:
-      throw new Error(
-        'Must define listener type: [plain, tls, websocket, socketio]'
-      );
+  case 'plain':
+    proto = net;
+    break;
+  case 'tls':
+    proto = tls;
+    serverOptions = listener;
+    serverOptions.requestCert = true;
+    eventName = 'secureConnection';
+    break;
+  case 'socketio':
+    proto = socketio;
+    serverOptions = listener;
+    serverOptions.requestCert = true;
+    serverOptions.sio_type = 'socketio';
+    break;
+  case 'websocket':
+    proto = socketio;
+    serverOptions = listener;
+    serverOptions.requestCert = true;
+    serverOptions.sio_type = 'ws';
+    break;
+  default:
+    throw new Error(
+      'Must define listener type: [plain, tls, websocket, socketio]'
+    );
   }
 
   var listenerKey = listener.host + ':' + listener.port;
