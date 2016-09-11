@@ -75,7 +75,6 @@ config.listeners.forEach(function eachListener(listener) {
       throw new Error(
         'Must define listener type: [plain, tls, websocket, socketio]'
       );
-      break;
   }
 
   var listenerKey = listener.host + ':' + listener.port;
