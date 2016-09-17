@@ -2,7 +2,6 @@
 
 'use strict';
 
-var child_process = require('child_process');
 var net = require('net');
 var tls = require('tls');
 var util = require('util');
@@ -149,44 +148,44 @@ function disableListener(key) {
 }
 
 process.on('SIGHUP', function configReload() {
-        Object.keys(require.cache).forEach(function(key) { delete require.cache[key] })
-        var newConfig = require("./config");
-        LOG.info('SIGHUP received, reloading config');
+  Object.keys(require.cache).forEach(function (key) { delete require.cache[key]; });
+  var newConfig = require('./config');
+  LOG.info('SIGHUP received, reloading config');
 
-        try {
-            newConfig.listeners.forEach(function enableDisable(listener) {
-            var key = listener.host + ':' + listener.port;
-            var definedListener = definedListeners[key];
+  try {
+    newConfig.listeners.forEach(function enableDisable(listener) {
+      var key = listener.host + ':' + listener.port;
+      var definedListener = definedListeners[key];
 
-            if (!definedListener) {
-              LOG.error('cannot add new listeners with reload, ignoring', key);
-              return;
-            }
+      if (!definedListener) {
+        LOG.error('cannot add new listeners with reload, ignoring', key);
+        return;
+      }
 
-            if (listener.enabled && definedListener.server &&
-                ("cert" in definedListener.serverOptions) &&
-                (JSON.stringify(listener.cert) != JSON.stringify(definedListener.serverOptions.cert))) {
-              LOG.info('certificate for', key, 'changed, reopening');
-              disableListener(key);
-              definedListener.serverOptions.key = listener.key;
-              definedListener.serverOptions.cert = listener.cert;
-              enableListener(key);
-            }
-            else if (listener.enabled && !definedListener.server) {
-              LOG.info('enabling', key, 'listener');
-              definedListener.serverOptions.key = listener.key;
-              definedListener.serverOptions.cert = listener.cert;
-              enableListener(key);
-            }
-            else if (!listener.enabled && definedListener.server) {
-              LOG.info('disabling', key, 'listener');
-              disableListener(key);
-            }
+      if (listener.enabled && definedListener.server &&
+        ('cert' in definedListener.serverOptions) &&
+        (JSON.stringify(listener.cert) != JSON.stringify(definedListener.serverOptions.cert))) {
+        LOG.info('certificate for', key, 'changed, reopening');
+        disableListener(key);
+        definedListener.serverOptions.key = listener.key;
+        definedListener.serverOptions.cert = listener.cert;
+        enableListener(key);
+      }
+      else if (listener.enabled && !definedListener.server) {
+        LOG.info('enabling', key, 'listener');
+        definedListener.serverOptions.key = listener.key;
+        definedListener.serverOptions.cert = listener.cert;
+        enableListener(key);
+      }
+      else if (!listener.enabled && definedListener.server) {
+        LOG.info('disabling', key, 'listener');
+        disableListener(key);
+      }
 
-          });
-          config.blockTor = !!newConfig.blockTor;
-          config.blockTorMessage = newConfig.blockTorMessage;
-        } catch (e) {
-          LOG.error(e, 'Failed to parse configuration file');
-        }
+    });
+    config.blockTor = !!newConfig.blockTor;
+    config.blockTorMessage = newConfig.blockTorMessage;
+  } catch (e) {
+    LOG.error(e, 'Failed to parse configuration file');
+  }
 });
