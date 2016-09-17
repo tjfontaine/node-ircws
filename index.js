@@ -2,6 +2,7 @@
 
 'use strict';
 
+var module = require('module');
 var net = require('net');
 var tls = require('tls');
 var util = require('util');
@@ -148,7 +149,38 @@ function disableListener(key) {
 }
 
 process.on('SIGHUP', function configReload() {
-  Object.keys(require.cache).forEach(function (key) { delete require.cache[key]; });
+  /*
+   * This is the worst. Don't do it, the module cache is off limits.
+   *
+   * Except, well -- we want to have "real" module semantics so we can define
+   * some of our config in terms of JavaScript. This means that we need to
+   * reevaluate the code, but we don't want to use `eval` and a `vm` sandbox is
+   * not sufficient to avoid runaway configs from polluting the namespace.  The
+   * cleanest thing is to use a child process to evaluate and send back the
+   * results, but since that involves overhead and other complexity wouldn't it
+   * be nice if we could just re-require the module outright? In order to do
+   * that we must invalidate the require cache, but we should *only* invalidate
+   * the entry for the config itself.
+   *
+   * The contract therefore becomes:
+   *   - config should hold no external references
+   *   - config should not create resources that cannot be implicitly collected
+   *   - config evaluation cannot depend on lazy module loading behavior
+   *
+   * Holding to this contract, it's reasonably "safe" to muck with the require
+   * cache. If you're reading this code however, you've probably violated one of
+   * the contract stipulations, and I'm sorry.
+   *
+   * For the other passersby, if you invalidate the entire cache and are relying
+   * on the "node module as a singleton" -- welp, there goes that. You'll likely
+   * incur a performance penalty (require is after all synchronous), or
+   * depending on how often you invalidate the cache, a memory leak.
+   *
+   * Best wishes.
+   */
+  var configRealPath = module._resolveFilename('./config');
+  delete require.cache[configRealPath];
+
   var newConfig = require('./config');
   LOG.info('SIGHUP received, reloading config');
 
