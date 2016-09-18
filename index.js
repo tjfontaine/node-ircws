@@ -106,6 +106,7 @@ function enableListener(key) {
   LOG.info('starting listener', key);
 
   var server = listener.proto.createServer(listener.serverOptions);
+  server.log = LOG.child({ server: key });
 
   server.listen(listener.listenOptions.port, listener.listenOptions.host);
 
